@@ -61,7 +61,7 @@
         <div class="row">
           <div class="col-lg-8 col-md-10 mx-auto">
             <div class="post-heading">
-              <h1>A SHINY APP for Cleaning & Downloading FLASHE Data</h1>
+              <h1>A Shiny App for Cleaning & Downloading FLASHE Data</h1>
               <!--<h2 class="subheading">Problems look mighty small from 150 miles up</h2> -->
               <span class="meta">Posted by
                 <a href="#">Julianna Alvord</a>
@@ -77,45 +77,64 @@
       <div class="container">
         <div class="row">
           <div class="col-lg-8 col-md-10 mx-auto">
-            <p>Intro (P1): When did it come out? What is their goal? Seems exciting but... </p>
+            <p>The Family Life, Activity, Sun, Health, and Eating (FLASHE) Study from the National Institute of Health's National Cancer Institute collected survey data on "on psychosocial, generational (parent-adolescent), and environmental correlates of cancer-preventive behaviors." The form of this data is standard dyadic, meaning that each person is linked to one and only one other person in the sample with both having been measured on the same variables. I was introduced to this data by my professor in a intergroup relationship seminar. I mentioned I was interested in health disparities and she thought I might want to analyze the data from this study. However, after finally seeing the data (which was split into 6 files and in the wrong format for dyadic analyses), we jointly decided the task of cleaning and preparing would be too extensive for the 4-credit psychology seminar.</p>
+            <p>After the course ended, I was still interested in the data and especially in the challenge of wrangling it. Mostly, I knew that if I saw the cleaning as a challenge, others with less data experience would never have a chance to use the data. I decided to use a summer fellowship to create an online app that would allow users to choose variables and the format which they need for their analyses. This way, I could assist with increasing it's accessibility and the scope of reproducible research using the data.</p>
+            <p>I started with the basics- loading the data into R. It was not until then that I saw the extent of cleaning necessary. First, the three datasets for the adolescent data included "T_" at the beginning of most variables, while the variables within the parent datasets started with "P_". In order to fix that, I used the substring function to get rid of the first two characters in the variable name string: </p>
             
 <!--begin.rcode
-7+8
+names(parent_diet)[8:110] <- substring(names(parent_diet)[8:110],2)
 end.rcode-->
+
+            <p>Many of the variable names were messier and some had to be individually changed using the rename function. Once the cleaning was complete, I joined the three parent datasets together then the three adolescent datasets:</p>
             
+<!--begin.rcode
+parent_full <- parent_demog %>%
+  full_join(parent_diet, by = "PID") %>%
+  full_join(parent_pa, by = "PID")
+end.rcode-->
+
+            <p>After full parent and teen datasets were created, I used the bind_rows function to stack the two. To complete the transformation from six datasets to one in "individual format", I created a binary variable that distinguished whether the row contained data from a parent or teen. Then, I arranged by "DYADID", which formatted the data to list the pair of one parent and one teen before moving to the next pair. Lastly, the individual identifier (instead of the dyad identifier) was removed in order to later format into dyad and pairwise form.</p>
             
-            <p>On September 5th, Google rolled out a new feature that had many researchers and Open Science proponents cheering: a dataset search. In Google’s words, data discovery was previously tedious and in some cases, nearly impossible. Now, similar to their commercial web search, this feature allows users to easily find data relating to any simple keyword.</p>
-            
-            <p>Nutgraph (P2): Where is the line between accessibility and privacy? It's important to find a happy medium. I have experience with my own work with datasets</p>
+<!--begin.rcode
+df_indiv <- df %>%
+  mutate(distinguish = ifelse(distinguish == "P", 1, 2)) %>%
+  arrange(DYADID) %>%
+  select(-PID)
+end.rcode-->
 
-            <p>While data accessibility is widely celebrated, it’s important to be mindful of the reasons they are difficult to get to in the first place. Some have user agreements, others include private information that should be kept within an organization. In any case... </p>
+          <p>The next task was to format the data in dyad format. The desired result includes the data for both participants in the dyad contained in one row, with each dyad only recieving one row. Basically, the number of columns should double while the number of rows should be approximately 50% smaller.</p>
 
-            <p>P3: Taxonomy of publicly available datasets. Some are walled off!</p>
+<!--begin.rcode
+df_dyad <- df_indiv %>%
+  mutate(distinguish = ifelse(distinguish == 1, "P", "T")) %>%
+  gather(variable, value, FOLFAMRUL:WT_P_BOTH_PA) %>%
+  unite(var_distinguish, variable, distinguish) %>%
+  spread(var_distinguish, value)
+end.rcode-->
 
-            <p>P4: Usability study -- Choose search terms, # of results (approximately), types of results, try clicking on some and detail what google offers!</p>
+          <p>Finally, I formatted the data into the third form necessary for dyadic analyses, called pairwise. In this format, the goal is to give each individual a row but with their partner's data attached at the end. Compared to the dyad format, this dataset will contain the same number of columns but double the amount of rows. The logic behind code below is as such: ?</p>
+          
+<!--begin.rcode
+tempA <- df_indiv %>%
+  mutate(distinguishE = distinguish, partnum = 1, distinguish = ifelse(distinguish == 1, "A", "P")) %>%
+  gather(variable, value, FOLFAMRUL:distinguishE) %>%
+  unite(var_distinguish, variable, distinguish) %>%
+  spread(var_distinguish, value)
 
-            <p>P5: FLASHE not on google dataset search because it has a user agreement. Here is where I will introduce my work- "Like Google, my goal was to make these data more accesible..." BUT, it comes with a cost of privacy. And I can't ignore that.</p>
-            
-            <a href="#">
-              <img class="img-fluid" src="img/Data Download.png" alt="">
-            </a>
-            <span class="caption text-muted">A screenshot of the shiny app I developed.</span>
+tempB <- df_indiv %>%
+  mutate(distinguishE = distinguish, partnum = 2, distinguish = ifelse(distinguish == 1, "P", "A")) %>%
+  gather(variable, value, FOLFAMRUL:distinguishE) %>%
+  unite(var_distinguish, variable, distinguish) %>%
+  spread(var_distinguish, value)
 
-            <!-- <h2 class="section-heading">The Final Frontier</h2> -->
+#This is the pairwise df
+df_pair <- bind_rows(tempA, tempB) %>%
+  arrange(DYADID)
+end.rcode-->
 
-            <p>P6: Point is: each dataset comes with its own threshold of privacy. Google is specifically making it easier to find, not just bypassing certain walls and levels of privacy <a href="https://www.theverge.com/2018/9/5/17822562/google-dataset-search-service-scholar-scientific-journal-open-data-access">(good!)</a></p>
-
-            <p>P7: What I learned is, I cannot make the data more accesible with out compromising privacy- so I cannot cross that line, and I cannot continue with the project. </p>
-
-            <!--<blockquote class="blockquote">The dreams of yesterday are the hopes of today and the reality of tomorrow. Science has not yet mastered prophecy. We predict too much for the next year and yet far too little for the next ten.</blockquote> -->
-
-            <p>P8: I'm not writing about an abstract issue: data provacy issues happen all the time. Look at this example from OKCupid...</p>
-
-            <!--<h2 class="section-heading">Reaching for the Stars</h2> -->
-
-            <p>P9: As data scientists/researchers we must remember what the effects of our work are on privacy. We must find that line and not cross it. Then, we must encourage others to do the same.</p>
-
-
+          <p>These pieces of code were contained in an rscript that was sourced into the script for the app. The general idea behind the app is that a user can choose the format they want their data to be in then scroll through the variable names to choose the ones they desire. On the right side of the screen, they will see a glimpse of the data. Once they are satisfied, they can download the dataset as a CSV file.</p>
+          
+          <p>Shiny scripts typically contain two sections: the UI (user interface) and the server. Within the UI is where the format of the app (as well as the types of widgets) is set. The UI is esentially where code To allow users to choose the format they want, I used a function called selectInput, which took three arguments. First is the arbitrary name (in my case "dataset") to be used </p>
             <!--<p>Placeholder text by
              <a href="http://spaceipsum.com/">Space Ipsum</a>. Photographs by
               <a href="https://www.flickr.com/photos/nasacommons/">NASA on The Commons</a>.</p> -->
