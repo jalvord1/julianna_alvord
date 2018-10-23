@@ -140,7 +140,7 @@ sentiment_barkley_df <- sentiment_barkley_df %>%
 
 ###MAYFIELD
 #trying for saquon or mayfield
-baker_twitter <- searchTwitter("@bakermayfield",n=10000,lang="en")
+baker_twitter <- searchTwitter("@bakermayfield",n=5000,lang="en")
 
 baker_twitter_df <- twListToDF(baker_twitter)
 
@@ -215,4 +215,84 @@ View(pbp_yards)
 #plotting distribution of yards
 ggplot(pbp_2018_filtered, aes(Yards, fill = player)) + geom_density(alpha = 0.6)
 #similar distributions
+
+
+
+### LAMAR JACKSON
+jackson_twitter <- searchTwitter("@Lj_era8",n=10000,lang="en")
+
+jackson_twitter_df <- twListToDF(jackson_twitter)
+
+tweet_words_jackson <- jackson_twitter_df %>% select(id, text) %>% unnest_tokens(word,text)
+
+#plotting top words
+tweet_words_jackson %>% count(word,sort=T) %>% slice(1:20) %>% 
+  ggplot(aes(x = reorder(word, n, function(n) -n), y = n)) + 
+  geom_bar(stat = "identity") + theme(axis.text.x = element_text(angle = 60))
+
+#top words
+my_stop_words <- stop_words %>% select(-lexicon) %>% 
+  bind_rows(data.frame(word = c("https", "t.co", "rt", "amp","4yig9gzh5t","fyy2ceydhi","78","fakenews")))
+
+tweet_words_interesting_jackson <- tweet_words_jackson %>% anti_join(my_stop_words)
+
+tweet_words_interesting_jackson %>% group_by(word) %>% tally(sort=TRUE) %>% slice(1:25) %>% 
+  ggplot(aes(x = reorder(word, n, function(n) -n), y = n)) + 
+  geom_bar(stat = "identity") + theme(axis.text.x = element_text(angle = 60))
+
+bing_lex <- get_sentiments("nrc")
+
+fn_sentiment_jackson <- tweet_words_interesting_jackson %>% left_join(bing_lex)
+
+sentiment_jackson <- fn_sentiment_jackson %>% filter(!is.na(sentiment)) %>% group_by(sentiment) %>% summarise(n=n())
+
+sentiment_jackson <- sentiment_jackson %>%
+  mutate(player = "jackson")
+
+
+#sentiment of jackson v mayfield
+sentiment <- sentiment_jackson %>%
+  full_join(sentiment_mayfield, by = "sentiment")
+
+sentiment <- sentiment %>%
+  gather(c(player.x, player.y, n.x, n.y), key = "key", value = "value") %>%
+  filter(!(key == "player.x"|key == "player.y")) %>%
+  mutate(player = ifelse(key == "n.x", "jackson", "mayfield"))
+
+sentiment$value <- as.numeric(sentiment$value)
+
+ggplot(sentiment, aes(x = sentiment, y = value, fill = player)) + geom_bar(stat = "identity", position = "dodge") +
+  theme(axis.text.x = element_text(angle = 60))
+
+
+
+#how are they performing? Jackson v mayfield
+#bringing in pbp data
+pbp_2018 <- read.csv("pbp-2018.csv")
+
+#filtering for mayfield or jackson
+pbp_2018_filtered <- pbp_2018 %>%
+  mutate(jackson = ifelse(grepl("JACKSON", Description, fixed = TRUE), 1, 0),
+         mayfield = ifelse(grepl("MAYFIELD", Description, fixed = TRUE), 1, 0)) %>%
+  filter(jackson == 1|mayfield == 1) %>%
+  mutate(player = ifelse(jackson == 1, "jackson",
+                         ifelse(mayfield == 1, "mayfield", "both")))
+
+
+#how successful are they?
+pbp_yards <- pbp_2018_filtered %>%
+  group_by(player) %>%
+  summarise(mean_yards = mean(Yards),
+            median_yards = median(Yards),
+            min_yards = min(Yards),
+            max_yards = max(Yards),
+            n_plays = n())
+
+View(pbp_yards)
+
+#plotting distribution of yards
+ggplot(pbp_2018_filtered, aes(Yards, fill = player)) + geom_density(alpha = 0.6)
+#similar distributions
+
+#does this say anything of play of falcons v browns?
 
