@@ -63,5 +63,7 @@ pbp_yards <- pbp_2018_filtered %>%
 #plotting distribution of yards
 ggplot(pbp_2018_filtered, aes(Yards, fill = player)) + geom_density(alpha = 0.6)
 #similar distributions
+
+#can I get more updated data?
 ```
 

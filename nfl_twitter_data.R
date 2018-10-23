@@ -177,3 +177,42 @@ sentiment_mayfield <- sentiment_mayfield %>%
 
 sentiment <- sentiment_barkley_df %>%
   full_join(sentiment_mayfield, by = "sentiment")
+
+sentiment <- sentiment %>%
+  gather(c(player.x, player.y, n.x, n.y), key = "key", value = "value") %>%
+  filter(!(key == "player.x"|key == "player.y")) %>%
+  mutate(player = ifelse(key == "n.x", "barkley", "mayfield"))
+
+sentiment$value <- as.numeric(sentiment$value)
+
+ggplot(sentiment, aes(x = sentiment, y = value, fill = player)) + geom_bar(stat = "identity", position = "dodge") +
+  theme(axis.text.x = element_text(angle = 60))
+
+#not what I expected, but he's also performing better (see code below)
+
+#bringing in pbp data
+pbp_2018 <- read.csv("pbp-2018.csv")
+
+#filtering for mayfield or barkley
+pbp_2018_filtered <- pbp_2018 %>%
+  mutate(barkley = ifelse(grepl("BARKLEY", Description, fixed = TRUE), 1, 0),
+         mayfield = ifelse(grepl("MAYFIELD", Description, fixed = TRUE), 1, 0)) %>%
+  filter(barkley == 1|mayfield == 1) %>%
+  mutate(player = ifelse(barkley == 1, "barkley",
+                         ifelse(mayfield == 1, "mayfield", "both")))
+
+
+#how successful are they?
+pbp_yards <- pbp_2018_filtered %>%
+  group_by(player) %>%
+  summarise(mean_yards = mean(Yards),
+            median_yards = median(Yards),
+            min_yards = min(Yards),
+            max_yards = max(Yards))
+
+View(pbp_yards)
+
+#plotting distribution of yards
+ggplot(pbp_2018_filtered, aes(Yards, fill = player)) + geom_density(alpha = 0.6)
+#similar distributions
+
