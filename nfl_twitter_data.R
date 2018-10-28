@@ -4,10 +4,10 @@ library(tidytext)
 library(ggplot2)
 library(splitstackshape)
 
-consumer_key <- 'iVvWwwQXpUAbbV6S9aw6HJW37'
-consumer_secret <- '5vrWRaEzcj7WJTbwJOdaW53i7VpJPmsipvtSqToLwn8LeDYNaL'
-access_token <- '1054722799397466112-ua9Mgov3S4MoZ4ZMlr8XxpFKFjB4sB'
-access_secret <- 'LEDmFl0OmtUmXI0Qpv0xLV66HWNOXc2n0MtOpgU5zIWIM'
+consumer_key <- 'XXX'
+consumer_secret <- 'XXX'
+access_token <- 'XXX'
+access_secret <- 'XXX'
 
 setup_twitter_oauth(consumer_key, consumer_secret, access_token, access_secret)
 
@@ -35,8 +35,8 @@ tweet_words_interesting <- tweet_words %>% anti_join(my_stop_words)
 #GRAPHING ONLY INTERESTING WORDS
 tweet_words_interesting %>% group_by(word) %>% tally(sort=TRUE) %>% slice(1:25) %>% 
   ggplot(aes(x = reorder(word, n, function(n) -n), y = n)) + 
-  geom_bar(stat = "identity") + theme(axis.text.x = element_text(angle = 60, 
-                                                                                                                                                                                                        hjust = 1)) + xlab("")
+  geom_bar(stat = "identity") + theme(axis.text.x = element_text(angle = 60, hjust = 1)) + xlab("")
+
 #looking at sentiment of words 
 bing_lex <- get_sentiments("nrc")
 
@@ -296,3 +296,30 @@ ggplot(pbp_2018_filtered, aes(Yards, fill = player)) + geom_density(alpha = 0.6)
 
 #does this say anything of play of falcons v browns?
 
+
+
+###Christian Mccaffrey
+mccaffrey_twitter <- searchTwitter("@run__cmc",n=10000,lang="en")
+
+mccaffrey_twitter_df <- twListToDF(mccaffrey_twitter)
+
+tweet_words_mccaffrey <- mccaffrey_twitter_df %>% select(id, text) %>% unnest_tokens(word,text)
+
+#top words
+my_stop_words <- stop_words %>% select(-lexicon) %>% 
+  bind_rows(data.frame(word = c("https", "t.co", "rt", "amp","4yig9gzh5t","fyy2ceydhi","78","fakenews")))
+
+tweet_words_interesting_mccaffrey <- tweet_words_mccaffrey %>% anti_join(my_stop_words)
+
+tweet_words_interesting_mccaffrey %>% group_by(word) %>% tally(sort=TRUE) %>% slice(1:25) %>% 
+  ggplot(aes(x = reorder(word, n, function(n) -n), y = n)) + 
+  geom_bar(stat = "identity") + theme(axis.text.x = element_text(angle = 60))
+
+bing_lex <- get_sentiments("nrc")
+
+fn_sentiment_mccaffrey <- tweet_words_interesting_mccaffrey %>% left_join(bing_lex)
+
+sentiment_mccaffrey <- fn_sentiment_mccaffrey %>% filter(!is.na(sentiment)) %>% group_by(sentiment) %>% summarise(n=n())
+
+sentiment_mccaffrey <- sentiment_mccaffrey %>%
+  mutate(player = "jackson")
