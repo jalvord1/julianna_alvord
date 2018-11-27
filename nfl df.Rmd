@@ -13,6 +13,7 @@ library(rvest)
 library(magrittr)
 library(tidyr)
 library(stringr)
+library(ggplot2)
 ```
 
 #scraping and creating full 2018 roster
@@ -132,5 +133,33 @@ full_w_top100 <- full_roster %>%
   full_join(top100_full, by = "Name")
 
 write.csv(full_w_top100, "/Volumes/easystore/Special Studies Fall 2018/full roster with race.csv")
+```
+
+```{r}
+top100_more <- full_w_top100 %>%
+  filter(!is.na(Race)) %>%
+  #there are more than 1 michael thomas
+  filter(!(Name == "Michael Thomas" & team == "NYG"))
+
+group <- top100_more %>%
+  group_by(Race, Position) %>%
+  summarise(n = n()) 
+  #spread(key = Race, value = n)
+
+ggplot(group, aes(x=Position, y=n, fill=Race)) +
+    geom_bar(stat='identity', position='dodge')
+```
+
+```{r}
+#Play by play data
+pbp1 <- read.csv("/Volumes/easystore/Special Studies Fall 2018/pbp_11-27-18.csv") 
+
+top100_more <- top100_more %>%
+  mutate(nametosplit = Name) %>%
+  separate(col = nametosplit, into = c("firstname", "lastname"), sep = "\\ ") %>%
+  mutate(lastname = toupper(ifelse(firstname == "Ha", "Clinton-Dix", lastname)),
+         firstinitial = substring(firstname, 1, 1),
+         #to be able to look them up in play by play data
+         firstlast = paste(firstinitial, lastname, sep = "."))
 ```
 
