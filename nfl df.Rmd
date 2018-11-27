@@ -1,0 +1,136 @@
+---
+title: "Top NFL Players"
+author: "Julianna Alvord"
+date: "11/13/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(rtweet)
+library(rvest)
+library(magrittr)
+library(tidyr)
+library(stringr)
+```
+
+#scraping and creating full 2018 roster
+```{r}
+# teams
+teams <- c("BUF", "MIA", "NE", "NYJ", "DAL", "NYG", "PHI", "WAS", "BAL", "CIN", "CLE", "PIT", "CHI", "DET", "GB",
+           "MIN", "HOU", "IND", "JAX", "TEN", "ATL", "CAR", "NO", "TB", "DEN", "KC", "LAC", "OAK", "ARZ", "LAR",
+           "SF", "SEA")
+
+tables <- list()
+index <- 1
+for(i in teams){
+  try({
+  url <- paste0("https://www.ourlads.com/nfldepthcharts/roster/", i)
+  table <- url %>% 
+    read_html() %>% 
+    html_table(fill = TRUE)
+  
+  table[[1]]$team <- i
+
+  tables[index] <- table
+
+  index <- index + 1
+
+  })
+}
+df <- do.call("rbind", tables)
+
+#checking to make sure it works
+df_n_teams <- df %>%
+  mutate(n = ifelse(Player == "Active Players", 1, 0)) %>%
+  group_by(n) %>%
+  summarise(teams = sum(n))
+
+#ew- hand coding- want to figure out better way
+df_try2 <- df %>%
+  mutate(status = ifelse(row.names(df) %in% c(2:54, 71:123, 147:199, 227:279, 298:350, 373:425,
+                                              446:498, 522:574, 601:653, 681:733, 757:809, 832:885,
+                                              911:963, 983:1034, 1052:1103, 1125:1177, 1200:1252,
+                                              1274:1326, 1350:1402, 1428:1480, 1500:1553, 1572:1623,
+                                              1646:1698, 1723:1775, 1799:1851, 1874:1926, 1952:2004,
+                                              2025:2077, 2103:2155, 2175:2227, 2249:2301, 2322:2374), "active",
+                         ifelse(row.names(df) %in% c(56:64, 125:133, 201:210, 281:289, 352:360, 427:435,
+                                                     500:509, 576:584, 655:665, 735:745, 811:821, 887:897, 
+                                                     965:974, 1036:1045, 1105:1114, 1179:1188, 1254:1263,
+                                                     1328:1336, 1404:1413, 1482:1491, 1555:1564, 1625:1634,
+                                                     1700:1709, 1777:1787, 1853:1862, 1928:1937, 2006:2015,
+                                                     2079:2088, 2157:2166, 2229:2238, 2303:2311, 2376:2385), "practice",
+                                "reserve"))) %>%
+  filter(!Player %in% c("Active Players", "Practice Squad", "Reserves"))
+
+#how to group by the teams?
+#manually?
+#can I do a loop if I have two lists?
+
+splits <- str_split_fixed(df_try2$Player, ", ", 2)
+df_try2$Name <- paste(splits[,2], splits[,1], sep = ' ')
+
+full_roster <- df_try2 %>%
+  select(-Player)
+```
+
+#looping through handles
+```{r}
+#how do I get a list of handles?
+#try to do this on the top 100?
+#race on just top 100?
+
+twitter_handles <- c("@katyperry","@justinbieber","@Cristiano","@BarackObama")
+
+# Loop through the twitter handles & store the results as individual dataframes
+for(handle in twitter_handles) {
+  result <- search_tweets(handle, n = 15 , include_rts = FALSE)
+  result$Source <- handle
+
+  df_name <- substring(handle, 2)
+
+  if(exists(df_name)) {
+    assign(df_name, unique(rbind(get(df_name), result)))
+  } else {
+    assign(df_name, result)
+  }
+}
+```
+
+```{r}
+#top 100
+url<- "https://en.wikipedia.org/wiki/NFL_Top_100_Players_of_2018"
+
+top100 <- url %>%
+  read_html() %>%
+  html_nodes(xpath = '//*[@id="mw-content-text"]/div/table[3]') %>%
+  html_table()
+
+top100 <- top100[[1]]
+
+#bring in race df
+race_100 <- read.csv("/Volumes/easystore/Special Studies Fall 2018/nfl top 100 race.csv")
+
+top100_full <- top100 %>%
+  full_join(race_100)
+
+#FIXING NAMES FOR JOIN WITH FULL ROSTER
+
+top100_full <- top100_full %>%
+  mutate(Name = ifelse(Player == "A. J. Green", "AJ Green",
+                       ifelse(Player == "DeMarcus Lawrence", "Demarcus Lawrence",
+                              ifelse(Player == "A. J. Bouye", "AJ Bouye",
+                                     ifelse(Player == "Mark Ingram Jr.", "Mark Ingram",
+                                            ifelse(Player == "J. J. Watt", "JJ Watt",
+                                                   ifelse(Player == "Chris Harris Jr.", "Chris Harris",
+                                                          ifelse(Player == "C. J. Mosley", "CJ Mosley", Player))))))))
+
+
+#join with full roster?
+full_w_top100 <- full_roster %>%
+  full_join(top100_full, by = "Name")
+
+write.csv(full_w_top100, "/Volumes/easystore/Special Studies Fall 2018/full roster with race.csv")
+```
+
