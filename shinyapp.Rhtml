@@ -81,13 +81,13 @@
             <p>After the course ended, I was still interested in the data and especially in the challenge of wrangling it. Mostly, I knew that if I saw the cleaning as a challenge, others with less data experience would never have a chance to use the data. I decided to use a summer fellowship to create an online app that would allow users to choose variables and the format which they need for their analyses. This way, I could assist with increasing it's accessibility and the scope of reproducible research using the data.</p>
             <p>I started with the basics- loading the data into R. It was not until that step that I saw the extent of cleaning necessary. First, the three datasets for the adolescent data included "T_" at the beginning of most variables, while the variables within the parent datasets started with "P_". In order to fix that, I used the substring function to get rid of the first two characters in the variable name string: </p>
             
-<!--begin.rcode
+<!--begin.rcode eval = FALSE
 names(parent_diet)[8:110] <- substring(names(parent_diet)[8:110],2)
 end.rcode-->
 
             <p>Many of the variable names were messier and some had to be individually changed using the rename function. Once the cleaning was complete, I joined the three parent datasets together then the three adolescent datasets.</p>
             
-<!--begin.rcode
+<!--begin.rcode eval = FALSE
 parent_full <- parent_demog %>%
   full_join(parent_diet, by = "PID") %>%
   full_join(parent_pa, by = "PID")
@@ -99,7 +99,7 @@ end.rcode-->
 
             <p>After full parent and teen datasets were created, I used the bind_rows function to stack the two. To complete the transformation from six datasets to one in "individual format", I created a binary variable that distinguished whether the row contained data from a parent or teen. Then, I arranged by "DYADID", which formatted the data to list the pair of one parent and one teen before moving to the next pair. Lastly, the individual identifier (instead of the dyad identifier) was removed in order to later format into dyad and pairwise form.</p>
             
-<!--begin.rcode
+<!--begin.rcode eval = FALSE
 df_indiv <- df %>%
   mutate(distinguish = ifelse(distinguish == "P", 1, 2)) %>%
   arrange(DYADID) %>%
@@ -108,7 +108,7 @@ end.rcode-->
 
           <p>The next task was to format the data in dyad format. The desired result includes the data for both participants in the dyad contained in one row, with each dyad only recieving one row. Basically, the number of columns should double while the number of rows should be approximately 50% smaller.</p>
 
-<!--begin.rcode
+<!--begin.rcode eval = FALSE
 df_dyad <- df_indiv %>%
   mutate(distinguish = ifelse(distinguish == 1, "P", "T")) %>%
   gather(variable, value, FOLFAMRUL:WT_P_BOTH_PA) %>%
@@ -118,7 +118,7 @@ end.rcode-->
 
           <p>Finally, I formatted the data into the third form necessary for dyadic analyses, called pairwise. In this format, the goal is to give each individual a row but with their partner's data attached at the end. Compared to the dyad format, this dataset will contain the same number of columns but double the amount of rows. The logic behind code below is first creating two dyad-format dataframes, one with the adolescent data as the first set of columns then another with the parent data as the first. </p>
           
-<!--begin.rcode
+<!--begin.rcode eval = FALSE
 tempA <- df_indiv %>%
   mutate(distinguishE = distinguish, partnum = 1, distinguish = ifelse(distinguish == 1, "A", "P")) %>%
   gather(variable, value, FOLFAMRUL:distinguishE) %>%
@@ -144,14 +144,14 @@ end.rcode-->
           
           <p>In my case, the main goal was to let users choose the data format they want/need. I used a widgets whose function is called selectInput, which took three arguments. First is the arbitrary name (in my case "dataset") to be used in the server function. The second part holds the string which will be displayed to the user: "Which format do you want your data in?". Finally are the choices of individual, dyad, and pairwise. </p>
           
-<!--begin.rcode
+<!--begin.rcode eval = FALSE
 selectInput("dataset", "Which format do you want your data in?",
                                               choices = c("Individual", "Dyad", "Pairwise"))
 end.rcode-->
     
           <p>Within the server function, I used a reactive function to switch the names of the choices because I wanted to display different strings than what the datasets are actually called within my code.</p>
           
-<!--begin.rcode
+<!--begin.rcode eval = FALSE
   datasetInput <- reactive({
     switch(input$dataset,
            "Individual" = df_indiv,
@@ -162,7 +162,7 @@ end.rcode-->
 
           <p>Then, still in the server function, I could finally create a table output (not done with this reactive function above) of a head of the datasets that was chosen. You might look at the select function in the code below and wonder where the varInput() is coming from? We'll get there. The final argument, options= list(scrollX = TRUE)), adds a scroll bar to the table as more columns are chosen.</p>
           
-<!--begin.rcode
+<!--begin.rcode eval = FALSE
   output$table <- renderDataTable({
     datasetInput() %>%
       select(varInput())
@@ -171,13 +171,13 @@ end.rcode-->
           
           <p>Within the UI, the table was added using a dataTableOutput function with the only argument being the string that was determined in the above server function ("table" in this case). Each ___Output function within the UI matches a render___ function from the server function. The simple code found in the UI is as follows:</p>.
           
-<!--begin.rcode
+<!--begin.rcode eval = FALSE
 dataTableOutput("table")
 end.rcode-->
           
           <p>An important feature I wanted to add to the app was to allow users to choose the specific variables found within the format they choose. For example, there are twice as many variables within the dyad and pairwise formats and I wanted those to be options for the users. Therefore, there needed to be a reactive statement within the app that would change the column names. To do so, I used render function called renderUI which initally includes the output of the reactive function shown above (when users chose the data format they desired). Then, the function adds a selectInput function, which is actually a widgit usually used within the UI object. By doing this, there can be a reactive column selection based on the chosen data format.</p>
           
-<!--begin.rcode
+<!--begin.rcode eval = FALSE
   output$varControls <- renderUI({
     whichone <- datasetInput()
     selectInput("vars", "Which variables do you want included?",
@@ -187,13 +187,13 @@ end.rcode-->
           
           <p> Similar to what was seen above with the table, only a small piece of code was necessary to actually add this variable selection to the app interface:</p>
           
-<!--begin.rcode
+<!--begin.rcode eval = FALSE
 uiOutput("varControls")
 end.rcode-->
           
           <p>The final piece of code was one additional reactive function within the server function. This function pulled out the variables from the selectInput widgit found within the renderUI function. This is what is used within the previous select function when displaying the table to the user.</p>
           
-<!--begin.rcode
+<!--begin.rcode eval = FALSE
   varInput <- reactive({
     input$vars
   })
@@ -201,7 +201,7 @@ end.rcode-->
           
           <p>When this code gets put all together, there are additional pieces of the UI that are strictly about formatting. Below is the entire UI object.</p>
           
-<!--begin.rcode
+<!--begin.rcode eval = FALSE
 #Define UI
 ui <- fluidPage(
   
@@ -226,7 +226,7 @@ end.rcode-->
           
           <p>The code for the server function is much easier to follow, with each output or reactive piece stacked on each other:</p>
           
-<!--begin.rcode
+<!--begin.rcode eval = FALSE
 server <- function(input, output) {
   
   # Reactive value for selected dataset ----
@@ -260,7 +260,7 @@ end.rcode-->
           
           <p>The final piece necessary to run the app would be a call to the shinyApp function!</p>
           
-<!--begin.rcode results='hide', message=FALSE
+<!--begin.rcode eval = FALSE
 # Run the app ----
 shinyApp(ui = ui, server = server)
 end.rcode-->

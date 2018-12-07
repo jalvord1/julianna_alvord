@@ -145,8 +145,6 @@
             
 <div class="chunk" id="unnamed-chunk-1"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl kwd">names</span><span class="hl std">(parent_diet)[</span><span class="hl num">8</span><span class="hl opt">:</span><span class="hl num">110</span><span class="hl std">]</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">substring</span><span class="hl std">(</span><span class="hl kwd">names</span><span class="hl std">(parent_diet)[</span><span class="hl num">8</span><span class="hl opt">:</span><span class="hl num">110</span><span class="hl std">],</span><span class="hl num">2</span><span class="hl std">)</span>
 </pre></div>
-<div class="error"><pre class="knitr r">## Error in substring(names(parent_diet)[8:110], 2): object 'parent_diet' not found
-</pre></div>
 </div></div>
 
             <p>Many of the variable names were messier and some had to be individually changed using the rename function. Once the cleaning was complete, I joined the three parent datasets together then the three adolescent datasets.</p>
@@ -154,14 +152,10 @@
 <div class="chunk" id="unnamed-chunk-2"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl std">parent_full</span> <span class="hl kwb">&lt;-</span> <span class="hl std">parent_demog</span> <span class="hl opt">%&gt;%</span>
   <span class="hl kwd">full_join</span><span class="hl std">(parent_diet,</span> <span class="hl kwc">by</span> <span class="hl std">=</span> <span class="hl str">&quot;PID&quot;</span><span class="hl std">)</span> <span class="hl opt">%&gt;%</span>
   <span class="hl kwd">full_join</span><span class="hl std">(parent_pa,</span> <span class="hl kwc">by</span> <span class="hl std">=</span> <span class="hl str">&quot;PID&quot;</span><span class="hl std">)</span>
-</pre></div>
-<div class="error"><pre class="knitr r">## Error in parent_demog %&gt;% full_join(parent_diet, by = &quot;PID&quot;) %&gt;% full_join(parent_pa, : could not find function &quot;%&gt;%&quot;
-</pre></div>
-<div class="source"><pre class="knitr r"><span class="hl std">teen_full</span> <span class="hl kwb">&lt;-</span> <span class="hl std">teen_demog</span> <span class="hl opt">%&gt;%</span>
+
+<span class="hl std">teen_full</span> <span class="hl kwb">&lt;-</span> <span class="hl std">teen_demog</span> <span class="hl opt">%&gt;%</span>
   <span class="hl kwd">full_join</span><span class="hl std">(teen_diet,</span> <span class="hl kwc">by</span> <span class="hl std">=</span> <span class="hl str">&quot;PID&quot;</span><span class="hl std">)</span> <span class="hl opt">%&gt;%</span>
   <span class="hl kwd">full_join</span><span class="hl std">(teen_pa,</span> <span class="hl kwc">by</span> <span class="hl std">=</span> <span class="hl str">&quot;PID&quot;</span><span class="hl std">)</span>
-</pre></div>
-<div class="error"><pre class="knitr r">## Error in teen_demog %&gt;% full_join(teen_diet, by = &quot;PID&quot;) %&gt;% full_join(teen_pa, : could not find function &quot;%&gt;%&quot;
 </pre></div>
 </div></div>
 
@@ -171,8 +165,6 @@
   <span class="hl kwd">mutate</span><span class="hl std">(</span><span class="hl kwc">distinguish</span> <span class="hl std">=</span> <span class="hl kwd">ifelse</span><span class="hl std">(distinguish</span> <span class="hl opt">==</span> <span class="hl str">&quot;P&quot;</span><span class="hl std">,</span> <span class="hl num">1</span><span class="hl std">,</span> <span class="hl num">2</span><span class="hl std">))</span> <span class="hl opt">%&gt;%</span>
   <span class="hl kwd">arrange</span><span class="hl std">(DYADID)</span> <span class="hl opt">%&gt;%</span>
   <span class="hl kwd">select</span><span class="hl std">(</span><span class="hl opt">-</span><span class="hl std">PID)</span>
-</pre></div>
-<div class="error"><pre class="knitr r">## Error in df %&gt;% mutate(distinguish = ifelse(distinguish == &quot;P&quot;, 1, 2)) %&gt;% : could not find function &quot;%&gt;%&quot;
 </pre></div>
 </div></div>
 
@@ -184,8 +176,6 @@
   <span class="hl kwd">unite</span><span class="hl std">(var_distinguish, variable, distinguish)</span> <span class="hl opt">%&gt;%</span>
   <span class="hl kwd">spread</span><span class="hl std">(var_distinguish, value)</span>
 </pre></div>
-<div class="error"><pre class="knitr r">## Error in df_indiv %&gt;% mutate(distinguish = ifelse(distinguish == 1, &quot;P&quot;, : could not find function &quot;%&gt;%&quot;
-</pre></div>
 </div></div>
 
           <p>Finally, I formatted the data into the third form necessary for dyadic analyses, called pairwise. In this format, the goal is to give each individual a row but with their partner's data attached at the end. Compared to the dyad format, this dataset will contain the same number of columns but double the amount of rows. The logic behind code below is first creating two dyad-format dataframes, one with the adolescent data as the first set of columns then another with the parent data as the first. </p>
@@ -195,22 +185,16 @@
   <span class="hl kwd">gather</span><span class="hl std">(variable, value, FOLFAMRUL</span><span class="hl opt">:</span><span class="hl std">distinguishE)</span> <span class="hl opt">%&gt;%</span>
   <span class="hl kwd">unite</span><span class="hl std">(var_distinguish, variable, distinguish)</span> <span class="hl opt">%&gt;%</span>
   <span class="hl kwd">spread</span><span class="hl std">(var_distinguish, value)</span>
-</pre></div>
-<div class="error"><pre class="knitr r">## Error in df_indiv %&gt;% mutate(distinguishE = distinguish, partnum = 1, : could not find function &quot;%&gt;%&quot;
-</pre></div>
-<div class="source"><pre class="knitr r"><span class="hl std">tempB</span> <span class="hl kwb">&lt;-</span> <span class="hl std">df_indiv</span> <span class="hl opt">%&gt;%</span>
+
+<span class="hl std">tempB</span> <span class="hl kwb">&lt;-</span> <span class="hl std">df_indiv</span> <span class="hl opt">%&gt;%</span>
   <span class="hl kwd">mutate</span><span class="hl std">(</span><span class="hl kwc">distinguishE</span> <span class="hl std">= distinguish,</span> <span class="hl kwc">partnum</span> <span class="hl std">=</span> <span class="hl num">2</span><span class="hl std">,</span> <span class="hl kwc">distinguish</span> <span class="hl std">=</span> <span class="hl kwd">ifelse</span><span class="hl std">(distinguish</span> <span class="hl opt">==</span> <span class="hl num">1</span><span class="hl std">,</span> <span class="hl str">&quot;P&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;A&quot;</span><span class="hl std">))</span> <span class="hl opt">%&gt;%</span>
   <span class="hl kwd">gather</span><span class="hl std">(variable, value, FOLFAMRUL</span><span class="hl opt">:</span><span class="hl std">distinguishE)</span> <span class="hl opt">%&gt;%</span>
   <span class="hl kwd">unite</span><span class="hl std">(var_distinguish, variable, distinguish)</span> <span class="hl opt">%&gt;%</span>
   <span class="hl kwd">spread</span><span class="hl std">(var_distinguish, value)</span>
-</pre></div>
-<div class="error"><pre class="knitr r">## Error in df_indiv %&gt;% mutate(distinguishE = distinguish, partnum = 2, : could not find function &quot;%&gt;%&quot;
-</pre></div>
-<div class="source"><pre class="knitr r"><span class="hl com">#This is the pairwise df</span>
+
+<span class="hl com">#This is the pairwise df</span>
 <span class="hl std">df_pair</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">bind_rows</span><span class="hl std">(tempA, tempB)</span> <span class="hl opt">%&gt;%</span>
   <span class="hl kwd">arrange</span><span class="hl std">(DYADID)</span>
-</pre></div>
-<div class="error"><pre class="knitr r">## Error in bind_rows(tempA, tempB) %&gt;% arrange(DYADID): could not find function &quot;%&gt;%&quot;
 </pre></div>
 </div></div>
 
@@ -225,8 +209,6 @@
 <div class="chunk" id="unnamed-chunk-6"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl kwd">selectInput</span><span class="hl std">(</span><span class="hl str">&quot;dataset&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;Which format do you want your data in?&quot;</span><span class="hl std">,</span>
                                               <span class="hl kwc">choices</span> <span class="hl std">=</span> <span class="hl kwd">c</span><span class="hl std">(</span><span class="hl str">&quot;Individual&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;Dyad&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;Pairwise&quot;</span><span class="hl std">))</span>
 </pre></div>
-<div class="error"><pre class="knitr r">## Error in selectInput(&quot;dataset&quot;, &quot;Which format do you want your data in?&quot;, : could not find function &quot;selectInput&quot;
-</pre></div>
 </div></div>
     
           <p>Within the server function, I used a reactive function to switch the names of the choices because I wanted to display different strings than what the datasets are actually called within my code.</p>
@@ -238,8 +220,6 @@
            <span class="hl str">&quot;Pairwise&quot;</span> <span class="hl std">= df_pair)</span>
   <span class="hl std">})</span>
 </pre></div>
-<div class="error"><pre class="knitr r">## Error in reactive({: could not find function &quot;reactive&quot;
-</pre></div>
 </div></div>
 
           <p>Then, still in the server function, I could finally create a table output (not done with this reactive function above) of a head of the datasets that was chosen. You might look at the select function in the code below and wonder where the varInput() is coming from? We'll get there. The final argument, options= list(scrollX = TRUE)), adds a scroll bar to the table as more columns are chosen.</p>
@@ -249,15 +229,11 @@
       <span class="hl kwd">select</span><span class="hl std">(</span><span class="hl kwd">varInput</span><span class="hl std">())</span>
   <span class="hl std">},</span> <span class="hl kwc">options</span> <span class="hl std">=</span> <span class="hl kwd">list</span><span class="hl std">(</span><span class="hl kwc">scrollX</span> <span class="hl std">=</span> <span class="hl num">TRUE</span><span class="hl std">))</span>
 </pre></div>
-<div class="error"><pre class="knitr r">## Error in renderDataTable({: could not find function &quot;renderDataTable&quot;
-</pre></div>
 </div></div>
           
           <p>Within the UI, the table was added using a dataTableOutput function with the only argument being the string that was determined in the above server function ("table" in this case). Each ___Output function within the UI matches a render___ function from the server function. The simple code found in the UI is as follows:</p>.
           
 <div class="chunk" id="unnamed-chunk-9"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl kwd">dataTableOutput</span><span class="hl std">(</span><span class="hl str">&quot;table&quot;</span><span class="hl std">)</span>
-</pre></div>
-<div class="error"><pre class="knitr r">## Error in dataTableOutput(&quot;table&quot;): could not find function &quot;dataTableOutput&quot;
 </pre></div>
 </div></div>
           
@@ -269,15 +245,11 @@
                 <span class="hl kwc">choices</span> <span class="hl std">=</span> <span class="hl kwd">names</span><span class="hl std">(whichone),</span> <span class="hl kwc">multiple</span> <span class="hl std">=</span> <span class="hl num">TRUE</span><span class="hl std">,</span> <span class="hl kwc">selected</span> <span class="hl std">=</span> <span class="hl str">&quot;DYADID&quot;</span><span class="hl std">)</span>
   <span class="hl std">})</span>
 </pre></div>
-<div class="error"><pre class="knitr r">## Error in renderUI({: could not find function &quot;renderUI&quot;
-</pre></div>
 </div></div>
           
           <p> Similar to what was seen above with the table, only a small piece of code was necessary to actually add this variable selection to the app interface:</p>
           
 <div class="chunk" id="unnamed-chunk-11"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl kwd">uiOutput</span><span class="hl std">(</span><span class="hl str">&quot;varControls&quot;</span><span class="hl std">)</span>
-</pre></div>
-<div class="error"><pre class="knitr r">## Error in uiOutput(&quot;varControls&quot;): could not find function &quot;uiOutput&quot;
 </pre></div>
 </div></div>
           
@@ -286,8 +258,6 @@
 <div class="chunk" id="unnamed-chunk-12"><div class="rcode"><div class="source"><pre class="knitr r">  <span class="hl std">varInput</span> <span class="hl kwb">&lt;-</span> <span class="hl kwd">reactive</span><span class="hl std">({</span>
     <span class="hl std">input</span><span class="hl opt">$</span><span class="hl std">vars</span>
   <span class="hl std">})</span>
-</pre></div>
-<div class="error"><pre class="knitr r">## Error in reactive({: could not find function &quot;reactive&quot;
 </pre></div>
 </div></div>
           
@@ -311,8 +281,6 @@
                                   <span class="hl kwd">downloadButton</span><span class="hl std">(</span><span class="hl str">&quot;downloadData&quot;</span><span class="hl std">,</span> <span class="hl str">&quot;Download&quot;</span><span class="hl std">)),</span>
                             <span class="hl kwd">column</span><span class="hl std">(</span><span class="hl num">9</span><span class="hl std">,</span> <span class="hl kwd">br</span><span class="hl std">(),</span> <span class="hl kwd">dataTableOutput</span><span class="hl std">(</span><span class="hl str">&quot;table&quot;</span><span class="hl std">))</span>
       <span class="hl std">)</span>
-</pre></div>
-<div class="error"><pre class="knitr r">## Error in fluidPage(titlePanel(&quot;Downloading FLASHE Data&quot;), column(3, br(), : could not find function &quot;fluidPage&quot;
 </pre></div>
 </div></div>
 
@@ -356,8 +324,6 @@
           
 <div class="chunk" id="unnamed-chunk-15"><div class="rcode"><div class="source"><pre class="knitr r"><span class="hl com"># Run the app ----</span>
 <span class="hl kwd">shinyApp</span><span class="hl std">(</span><span class="hl kwc">ui</span> <span class="hl std">= ui,</span> <span class="hl kwc">server</span> <span class="hl std">= server)</span>
-</pre></div>
-<div class="error"><pre class="knitr r">## Error in shinyApp(ui = ui, server = server): could not find function &quot;shinyApp&quot;
 </pre></div>
 </div></div>
           
