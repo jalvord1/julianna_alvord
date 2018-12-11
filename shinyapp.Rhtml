@@ -76,10 +76,10 @@
     <article>
       <div class="container">
         <div class="row">
-          <div class="col-lg-8 col-md-10 mx-auto">
-            <p>The Family Life, Activity, Sun, Health, and Eating (FLASHE) Study from the National Institute of Health's National Cancer Institute collected survey data on "on psychosocial, generational (parent-adolescent), and environmental correlates of cancer-preventive behaviors." The form of this data is standard dyadic, meaning that each person is linked to one and only one other person in the sample with both having been measured on the same variables. I was introduced to this data by my professor in a intergroup relationship seminar. I mentioned I was interested in health disparities and she thought I might want to analyze the data from this study. However, after finally seeing the data (which was split into 6 files and in the wrong format for dyadic analyses), we jointly decided the task of cleaning and preparing would be too extensive for the 4-credit psychology seminar.</p>
-            <p>After the course ended, I was still interested in the data and especially in the challenge of wrangling it. Mostly, I knew that if I saw the cleaning as a challenge, others with less data experience would never have a chance to use the data. I decided to use a summer fellowship to create an online app that would allow users to choose variables and the format which they need for their analyses. This way, I could assist with increasing it's accessibility and the scope of reproducible research using the data.</p>
-            <p>I started with the basics- loading the data into R. It was not until that step that I saw the extent of cleaning necessary. First, the three datasets for the adolescent data included "T_" at the beginning of most variables, while the variables within the parent datasets started with "P_". In order to fix that, I used the substring function to get rid of the first two characters in the variable name string: </p>
+          <div class="col-lg-12 col-md-12 mx-auto">
+            <p>The Family Life, Activity, Sun, Health, and Eating (FLASHE) Study from the National Institute of Health's National Cancer Institute collected survey data on "psychosocial, generational (parent-adolescent), and environmental correlates of cancer-preventive behaviors." The form of this data is standard dyadic, meaning that each person is linked to one- and only one- other person in the sample with both having been measured on the same variables. I was introduced to this data by my professor during an intergroup relationship seminar. She knew about my interest in health disparities and thought I might want to analyze the data from this study. However, after finally seeing the data (which was split into 6 files and in the wrong format for dyadic analyses), we jointly decided the task of cleaning and preparing would be too extensive for the 4-credit psychology seminar.</p>
+            <p>After the course ended, my interest in the data persisted with a special interest in the challenge of wrangling it. Mostly, I knew that if I saw the cleaning as a challenge, others with less data experience would never have a chance to use the data. I decided to use a summer fellowship to create an online app that would allow users to choose variables and the format they need for their analyses. This way, I could increase the accessibility of the data and the scope of reproducible research.</p>
+            <p>I started with the basics- loading the data into R. It was not until that step that I determined the extent of cleaning necessary. First, the three datasets for the adolescent data included "T_" at the beginning of most variables, while the variables within the parent datasets started with "P_". In order to fix that, I used the substring function to get rid of the first two characters in the variable name string: </p>
             
 <!--begin.rcode eval = FALSE
 names(parent_diet)[8:110] <- substring(names(parent_diet)[8:110],2)
@@ -106,7 +106,7 @@ df_indiv <- df %>%
   select(-PID)
 end.rcode-->
 
-          <p>The next task was to format the data in dyad format. The desired result includes the data for both participants in the dyad contained in one row, with each dyad only recieving one row. Basically, the number of columns should double while the number of rows should be approximately 50% smaller.</p>
+          <p>The next task was to move the data into dyad format. The desired result includes the data for both participants of the dyad contained in one row, with each dyad only recieving one row. Basically, the number of columns should double while the number of rows should be approximately 50% smaller.</p>
 
 <!--begin.rcode eval = FALSE
 df_dyad <- df_indiv %>%
@@ -116,7 +116,7 @@ df_dyad <- df_indiv %>%
   spread(var_distinguish, value)
 end.rcode-->
 
-          <p>Finally, I formatted the data into the third form necessary for dyadic analyses, called pairwise. In this format, the goal is to give each individual a row but with their partner's data attached at the end. Compared to the dyad format, this dataset will contain the same number of columns but double the amount of rows. The logic behind code below is first creating two dyad-format dataframes, one with the adolescent data as the first set of columns then another with the parent data as the first. </p>
+          <p>Finally, I formatted the data into the third form necessary for dyadic analyses, called pairwise. In this format, the goal is to give each individual a row but with their partner's data attached at the end. Compared to the dyad format, this dataset will contain the same number of columns but double the amount of rows. The logic behind the code below is first creating two dyad-format dataframes, one with the adolescent data as the first set of columns then another with the parent data as the first. Then, the rows of those two datasets are binded.</p>
           
 <!--begin.rcode eval = FALSE
 tempA <- df_indiv %>%
@@ -138,7 +138,7 @@ end.rcode-->
 
                      <h2 class="section-heading">Writing the App</h2>
          
-          <p>These pieces of code were contained in an rscript that was sourced into the script for the app. The general idea behind the app is that a user can choose the format they want their data to be in then scroll through the variable names to choose the ones they desire. On the right side of the screen, they will see a glimpse of the data. Once they are satisfied, they can download the dataset as a CSV file.</p>
+          <p>The above pieces of code were contained in an rscript that was sourced into the script for the app. The general idea behind the app is that a user can choose the format they want their data to be in then scroll through the variable names to choose the ones they desire. On the right side of the screen, they will see a glimpse of the data. Once they are satisfied, they can download the dataset as a CSV file.</p>
           
           <p>Shiny scripts typically contain three components: the UI (user interface) object, the server function, and the call to the shinyApp function. Within the UI is where the layout is set. The layout includes multiple aspects including panels, headers, and images. Within the UI object is also where widgets are added, which are web elements that allows users to interact with the app. The server function allows for reactive output and each output entry contains one of Shiny's render functions. Examples include renderText, renderPlot, and renderUI. Shiny offers multiple simple examples within their <a href="https://shiny.rstudio.com/gallery/">gallery</a>.</p>
           
